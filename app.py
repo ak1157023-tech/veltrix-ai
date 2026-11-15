@@ -1,0 +1,50 @@
+"""VELTRIX AI - Phase 1 (simple version). Run:  python app.py"""
+import shutil
+import subprocess
+import threading
+import webbrowser
+from pathlib import Path
+
+import uvicorn
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
+
+BASE = Path(__file__).parent
+app = FastAPI(title="VELTRIX AI")
+
+ENCODERS = {
+    "h264_nvenc": "NVIDIA NVENC (H.264)",
+    "hevc_nvenc": "NVIDIA NVENC (H.265)",
+    "h264_qsv": "Intel Quick Sync (H.264)",
+    "hevc_qsv": "Intel Quick Sync (H.265)",
+    "h264_amf": "AMD AMF (H.264)",
+    "hevc_amf": "AMD AMF (H.265)",
+    "libx264": "CPU x264 (H.264)",
+    "libx265": "CPU x265 (H.265)",
+    "libvpx-vp9": "CPU VP9 (WebM)",
+}
+
+
+def run(args):
+    return subprocess.run(args, capture_output=True, text=True, timeout=15).stdout
+
+
+@app.get("/")
+def home():
+    return FileResponse(BASE / "index.html")
+
+
+@app.get("/api/system")
+def system():
+    path = shutil.which("ffmpeg")
+    if not path:
+        return {"ffmpeg": False, "version": None, "encoders": []}
+    version = run([path, "-version"]).splitlines()[0]
+    out = run([path, "-hide_banner", "-encoders"])
+    found = [label for key, label in ENCODERS.items() if key in out]
+    return {"ffmpeg": True, "version": version, "encoders": found}
+
+
+if __name__ == "__main__":
+    threading.Timer(1.5, lambda: webbrowser.open("http://localhost:8000")).start()
+    uvicorn.run(app, host="127.0.0.1", port=8000)
