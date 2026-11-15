@@ -1,4 +1,5 @@
 """VELTRIX AI - Phase 1 (simple version). Run:  python app.py"""
+import os
 import shutil
 import subprocess
 import threading
@@ -46,5 +47,9 @@ def system():
 
 
 if __name__ == "__main__":
-    threading.Timer(1.5, lambda: webbrowser.open("http://localhost:8000")).start()
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    # On Render the PORT variable is set; locally we use 8000 and open the browser.
+    port = int(os.environ.get("PORT", 8000))
+    on_server = "PORT" in os.environ
+    if not on_server:
+        threading.Timer(1.5, lambda: webbrowser.open(f"http://localhost:{port}")).start()
+    uvicorn.run(app, host="0.0.0.0" if on_server else "127.0.0.1", port=port)
