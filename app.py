@@ -35,7 +35,7 @@ def run(args):
 
 @app.get("/")
 def home():
-    return FileResponse(BASE / "index.html")
+    return FileResponse(BASE / "index.html", headers={"Cache-Control": "no-store"})  # always load the newest page
 
 
 @app.get("/api/system")
