@@ -10,8 +10,11 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
+from cartoon_routes import router as cartoon_router
+
 BASE = Path(__file__).parent
 app = FastAPI(title="VELTRIX AI")
+app.include_router(cartoon_router)  # AI Cartoon Studio
 
 ENCODERS = {
     "h264_nvenc": "NVIDIA NVENC (H.264)",
